@@ -1,0 +1,79 @@
+.btn-primary {
+  background-color:rgb(255, 128, 0);
+  background-image: linear-gradient(to bottom, rgb(251, 160, 69) 0, rgb(255, 128, 0) 100%);
+  border-color: rgb(236, 149, 62);
+}
+
+.btn-primary.active, .btn-primary:active, .btn-primary:focus, .btn-primary:hover {
+  background-color: rgb(255, 128, 0);
+  background-image: none;
+  border-color: rgb(236, 149, 62);
+}
+
+.form-control:hover {
+  border-color: rgb(251, 196, 141)
+}
+
+.form-control:focus {
+  border-color: rgb(236, 149, 62);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(236,149,62,.6);
+}
+
+a {
+  color: rgb(183, 92, 2);
+}
+
+a:hover, a:focus {
+  color: rgb(136, 68, 0);
+}
+
+.navbar-pf .navbar-brand {
+  background-size: auto 45px;
+}
+
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+  color: rgb(219, 113, 6);
+}
+
+.nav-tabs-pf > li.active > a:active::before, .nav-tabs-pf > li.active > a::before, .nav-tabs-pf > li.active > a:focus::before, .nav-tabs-pf > li.active > a:hover::before {
+  background-color: rgb(219, 113, 6);
+}
+
+.onoffswitch .onoffswitch-inner .onoffswitch-active {
+  background-image: linear-gradient(top, #f29100 0%, #d37f00 100%);
+  background-image: -o-linear-gradient(top, #f29100 0%, #d37f00 100%);
+  background-image: -moz-linear-gradient(top, #f29100 0%, #d37f00 100%);
+  background-image: -webkit-linear-gradient(top, #f29100 0%, #d37f00 100%);
+  background-image: -ms-linear-gradient(top, #f29100 0%, #d37f00 100%);
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #f29100), color-stop(1, 0, #d37f00));
+}
+
+.select2-container-active .select2-choice, .select2-container-active .select2-choices, .select2-container-multi.select2-container-active .select2-choices {
+  border: 1px solid #fbba58;
+}
+
+.select2-dropdown-open .select2-choice, .select2-dropdown-open .select2-choices {
+  border-bottom-color: transparent;
+}
+
+.select2-drop-active {
+  border: 1px solid #fbba58;
+  border-top: none;
+}
+
+.select2-results .select2-highlighted {
+  background: #ee9611;
+}
+
+.sidebar-pf-left {
+  background-color: #342e29;
+}
+
+.sidebar-pf .nav-pills > li.active a i, .sidebar-pf .nav-pills > li.active a span {
+  color: #e88b00;
+}
+
+.sidebar-pf .nav-pills > li.active > a {
+  background: #444039 !important;
+  border-left-color: #e88b00 !important;
+}
