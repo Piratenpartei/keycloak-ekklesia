@@ -1,0 +1,33 @@
+div.kc-logo-text {
+  height: 120px;
+  width: 350px;
+}
+
+.btn-primary {
+  background-color:rgb(255, 128, 0);
+  background-image: linear-gradient(to bottom, rgb(251, 160, 69) 0, rgb(255, 128, 0) 100%);
+  border-color: rgb(236, 149, 62);
+}
+
+.btn-primary.active, .btn-primary:active, .btn-primary:focus, .btn-primary:hover {
+  background-color: rgb(255, 128, 0);
+  background-image: none;
+  border-color: rgb(236, 149, 62);
+}
+
+.form-control:hover {
+  border-color: rgb(251, 196, 141)
+}
+
+.form-control:focus {
+  border-color: rgb(236, 149, 62);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(236,149,62,.6);
+}
+
+a {
+  color: rgb(183, 92, 2);
+}
+
+a:hover, a:focus, .login-pf a:hover {
+  color: rgb(136, 68, 0);
+}

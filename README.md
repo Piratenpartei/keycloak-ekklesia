@@ -7,11 +7,12 @@ Keycloak extensions for Ekklesia.
 - ekklesia
   - Adds sync_id field to registration form.
   - Hides the first and last name fields and fills them with default values.
+- ekklesia-pirates: Pirate design for Keycloak (has the ekklesia theme as parent).
 
 ### Installation
 
-1. Copy the themes/ekklesia folder to <keycloakInstallDir>/themes/
-2. In the administration interface go to Realm Settings -> Themes and select ekklesia as Login and Account theme
+1. Copy the themes/ekklesia and themes/ekklesia-pirates folders to `<keycloakInstallDir>/themes/`
+2. In the administration interface go to Realm Settings -> Themes and select ekklesia-pirates as Login and Account theme.
 
 ### Maintenance
 
