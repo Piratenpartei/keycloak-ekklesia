@@ -145,17 +145,19 @@ public class ContactInfoOidcMapper extends AbstractOIDCProtocolMapper implements
     @Override
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession, KeycloakSession keycloakSession, ClientSessionContext clientSessionCtx) {
         String email= userSession.getUser().getEmail();
-        String matrix= mappingModel.getConfig().getOrDefault("ekklesia_matrix_id", "");
+        List<String> matrix= userSession.getUser().getAttribute("ekklesia_matrix_id");
         String encryptedMessage="";
 
-        if (email!=null && email.trim().length()>0 || matrix!=null && matrix.trim().length()>0) {
+        if (email!=null && email.trim().length()>0 || matrix!=null && matrix.size()>0) {
 	        String secretKeyProperty= mappingModel.getConfig().getOrDefault(CONFIG_PROPERTY_SECRET_KEY, "");
 
 	        JsonBuilderFactory jsonFactory= Json.createBuilderFactory(null);
 	        SimpleDateFormat format= new SimpleDateFormat("YYYY-MM-dd'T'HH:mm:ss.SSS");
 	        JsonArrayBuilder matrixArrayBuilder=jsonFactory.createArrayBuilder();
-	        if (matrix!=null && matrix.trim().length()>0)
-	        	matrixArrayBuilder.add(matrix);
+	        if (matrix!=null && matrix.size()>0)
+	        	for (String i: matrix)
+	        		if (i!=null && i.trim().length()>0)
+	        			matrixArrayBuilder.add(i);
 	        JsonArrayBuilder emailArrayBuilder=jsonFactory.createArrayBuilder();
 	        if (email!=null && email.trim().length()>0)
 	        	emailArrayBuilder.add(email);
