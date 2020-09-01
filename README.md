@@ -2,6 +2,7 @@
 
 Keycloak extensions for Ekklesia.
 
+
 ## Theme
 
 - ekklesia
@@ -19,7 +20,17 @@ When keycloak is updated, check if the template files account/account.ftl and lo
 changed inside the <keycloakInstallDir>/themes/base folder and update them in this theme accordingly.
 
 
+## Sync with External Systems
+
+*external_sync* contains Python scripts to import Keycloak objects from external systems.
+See the README.md there.
+
+
 ## Code Extension
 
-- work in progress, will add a protocol mapper to encrypt recipient info for the
-  [ekklesia-notify](https://github.com/piratenpartei/ekklesia-notify) component.
+Adds a protocol mapper to encrypt recipient info for the
+[ekklesia-notify](https://github.com/piratenpartei/ekklesia-notify) component.
+
+### Configuration
+
+TODO: describe how to create the protocol mapper and what user attributes are used.
