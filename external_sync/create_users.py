@@ -10,9 +10,9 @@ from typing import List
 import typer
 from eliot import start_action, start_task, to_file
 from eliot.stdlib import EliotHandler
-from keycloak import KeycloakAdmin
 
 import settings
+from common import create_keycloak_admin_client
 
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.DEBUG)
@@ -26,18 +26,6 @@ class NewUser:
     username: str
     password: str
     sync_id: str
-
-
-def create_keycloak_admin_client() -> KeycloakAdmin:
-
-    return KeycloakAdmin(
-        server_url=settings.server_url,
-        realm_name=settings.realm,
-        client_id=settings.client_id,
-        client_secret_key=settings.client_secret,
-        user_realm_name="master",
-        verify=True
-    )
 
 
 def derive_sync_id(mid: int) -> str:
