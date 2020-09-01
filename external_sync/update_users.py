@@ -10,7 +10,7 @@ import logging
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional
 from keycloak import keycloak_admin
 
 import typer
@@ -44,9 +44,9 @@ def create_keycloak_admin_client() -> KeycloakAdmin:
 class UserUpdate:
     email: str
     sync_id: str
-    verified: bool
-    eligible: bool
-    department: str
+    verified: Optional[bool] = None
+    eligible: Optional[bool] = None
+    department: Optional[str] = None
 
 
 def prepare_user_updates(csv_filepath: str) -> List[UserUpdate]:
@@ -64,14 +64,16 @@ def prepare_user_updates(csv_filepath: str) -> List[UserUpdate]:
         for ll, row in enumerate(user_rows):
             try:
                 sync_id = row[settings.field_sync_id]
-
                 user = UserUpdate(
                     email=row[settings.field_email],
-                    sync_id=sync_id,
-                    verified=row[settings.field_verified] == "1",
-                    eligible=row[settings.field_eligible] == "1",
-                    department=row[settings.field_department]
+                    sync_id=sync_id
                 )
+                if settings.field_verified:
+                    user.verified = row[settings.field_verified] == "1"
+                if settings.field_eligible:
+                    user.eligible = row[settings.field_eligible] == "1"
+                if settings.field_department:
+                    user.department = row[settings.field_department]
                 users.append(user)
             except Exception as e:
                 log_message(message_type="prepare_user_failure", line=ll, exception=e)
@@ -178,11 +180,18 @@ def update_keycloak_user_attrs(keycloak_admin, user, user_update):
         keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs})
 
 
-def update_keycloak_user_group(keycloak_admin, user, user_update, group_ids_by_name):
-    with start_action(action_type="update_keycloak_user_group"):
+def update_keycloak_user_group(keycloak_admin, default_group_id, user, user_update, group_ids_by_name):
+    with start_action(action_type="update_keycloak_user_group") as action:
         user_id = user["id"]
 
-        wanted_group_id = group_ids_by_name[user_update.department]
+        wanted_group_id = group_ids_by_name.get(user_update.department)
+        if wanted_group_id is None:
+            wanted_group_id = default_group_id
+            action.log(
+                message_type="unknown_group",
+                group=user_update.department,
+                msg="no known department name given, using default group")
+
         group_found = False
         for group in keycloak_admin.get_user_groups(user_id):
             if group["id"] == wanted_group_id:
@@ -222,7 +231,7 @@ def update_keycloak_users(user_updates: List[UserUpdate]):
                 with start_action(action_type="update_keycloak_user", user_id=user["id"]):
                     user_update = get_user_update(user, updates_by_email, updates_by_sync_id)
                     update_keycloak_user_attrs(keycloak_admin, user, user_update)
-                    update_keycloak_user_group(keycloak_admin, user, user_update, group_ids_by_name)
+                    update_keycloak_user_group(keycloak_admin, parent_group["id"], user, user_update, group_ids_by_name)
 
             # Just go on if syncing failed for a user
             except Exception:
