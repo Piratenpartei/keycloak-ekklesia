@@ -11,14 +11,13 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import List, Optional
-from keycloak import keycloak_admin
 
 import typer
 from eliot import start_action, start_task, to_file, register_exception_extractor, log_message
 from eliot.stdlib import EliotHandler
-from keycloak import KeycloakAdmin
 
 import settings
+from common import create_keycloak_admin_client
 
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.DEBUG)
@@ -26,18 +25,6 @@ root_logger.addHandler(EliotHandler())
 to_file(sys.stdout)
 logging.captureWarnings(True)
 
-
-def create_keycloak_admin_client() -> KeycloakAdmin:
-
-    with start_action(action_type="create_keycloak_admin_client"):
-        return KeycloakAdmin(
-            server_url=settings.keycloak_url,
-            realm_name=settings.realm,
-            client_id=settings.client_id,
-            client_secret_key=settings.client_secret,
-            user_realm_name="master",
-            verify=True
-        )
 
 # XXX: use Pydantic for validation
 @dataclass
