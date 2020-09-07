@@ -7,10 +7,13 @@ Expected CSV format and Keycloak access settings can be configured via settings.
 """
 import csv
 import logging
+from os import dup
 import sys
+from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List, Optional, Set
+import keycloak
 
 import typer
 from eliot import start_action, start_task, to_file, register_exception_extractor, log_message
@@ -85,10 +88,10 @@ class SyncCheckFailed(Exception):
 register_exception_extractor(SyncCheckFailed, lambda e: {"case": e.case})
 
 
-def get_user_update(user, updates_by_email, updates_by_sync_id):
+def get_user_update(user, updates_by_email, updates_by_sync_id, used_sync_ids: Set[str], duplicate_sync_ids: Set[str]):
 
     with start_action(action_type="get_user_update") as action:
-        keycloak_sync_id = user['attributes'].get('sync_id', [''])[0]
+        keycloak_sync_id = get_attr(user.get('attributes'), "sync_id")
         keycloak_email = user['email']
 
         if keycloak_sync_id:
@@ -98,46 +101,60 @@ def get_user_update(user, updates_by_email, updates_by_sync_id):
 
             if user_update_by_sync_id is None:
                 raise SyncCheckFailed("1.1", "unknown sync id")
-            elif user_update_by_mail is None:
+
+            if not get_attr(user.get('attributes'), "first_sync"):
+                # New user!
+                if keycloak_sync_id in duplicate_sync_ids:
+                    raise SyncCheckFailed("1.2", "new user, sync id also used by another user!")
+
+            if user_update_by_mail is None:
                 action.add_success_fields(
-                    case="1.2",
+                    case="1.3",
                     text=
                     "sync id does not match member's mail address, ok because address doesn't belong to another member"
                 )
             elif user_update_by_mail == user_update_by_sync_id:
-                action.add_success_fields(case="1.3", text="sync id matches email")
+                action.add_success_fields(case="1.4", text="sync id matches email")
             else:
                 raise SyncCheckFailed(
-                    "1.4", "sync id does not match member's mail address, other member with that address found"
+                    "1.5", "sync id does not match member's mail address, other member with that address found"
                 )
 
         else:
             # 2. user has mail but no sync_id attr => new user
             user_update_by_mail = updates_by_email.get(keycloak_email)
             user_update_by_sync_id = None
+
             if user_update_by_mail:
-                action.add_success_fields(case="2.1", text="no sync id, known email")
+                if user_update_by_mail.sync_id in used_sync_ids:
+                    raise SyncCheckFailed("2.3", "new user, mail match would create second user for an existing sync id!")
+
+                action.add_success_fields(case="2.1", text="new user, no sync id, known email")
             else:
-                raise SyncCheckFailed("2.2", "no sync id, unknown mail")
+                raise SyncCheckFailed("2.2", "new user, no sync id, unknown mail")
 
     return user_update_by_mail or user_update_by_sync_id
+
+
+def get_attr(attributes, attrname, default=None):
+    """XXX: use Pydantic for validation and conversion
+    """
+    if not attributes:
+        return default
+
+    value = attributes.get(attrname, [default])[0]
+    if value == "true":
+        return True
+    elif value == "false":
+        return False
+    else:
+        return value
 
 
 def update_keycloak_user_attrs(keycloak_admin, user, user_update):
 
     with start_action(action_type="update_keycloak_user_attrs") as action:
-        current_attrs = user['attributes']
-
-        def get_user_attr(attrname, default=None):
-            """XXX: use Pydantic for validation and conversion
-            """
-            value = current_attrs.get(attrname, [default])[0]
-            if value == "true":
-                return True
-            elif value == "false":
-                return False
-            else:
-                return value
+        current_attrs = user.get('attributes', {})
 
         now_iso = datetime.now(timezone.utc).isoformat()
 
@@ -148,18 +165,18 @@ def update_keycloak_user_attrs(keycloak_admin, user, user_update):
             "last_sync": now_iso
         }
 
-        if "last_sync" not in user["attributes"]:
+        if "last_sync" not in current_attrs:
             updated_attrs["first_sync"] = now_iso
             action.add_success_fields(is_first_sync=True)
         else:
-            action.add_success_fields(previous_sync=get_user_attr("last_sync"))
+            action.add_success_fields(previous_sync=get_attr(current_attrs, "last_sync"))
             changed = {}
 
-            if get_user_attr("verified") != user_update.verified:
-                changed["verified"] = [get_user_attr("verified"), user_update.verified]
+            if get_attr(current_attrs, "verified") != user_update.verified:
+                changed["verified"] = [get_attr(current_attrs, "verified"), user_update.verified]
 
-            if get_user_attr("eligible") != user_update.eligible:
-                changed["eligible"] = [get_user_attr("eligible"), user_update.eligible]
+            if get_attr(current_attrs, "eligible") != user_update.eligible:
+                changed["eligible"] = [get_attr(current_attrs, "eligible"), user_update.eligible]
 
             if changed:
                 action.add_success_fields(changed=changed)
@@ -192,6 +209,31 @@ def update_keycloak_user_group(keycloak_admin, default_group_id, user, user_upda
                 keycloak_admin.group_user_add(user_id, wanted_group_id)
 
 
+def get_used_and_dup_sync_ids(keycloak_users: List[dict]):
+    with start_action(action_type="get_used_and_dup_sync_ids") as action:
+        users_by_sync_id = {}
+        for user in keycloak_users:
+            sync_id = get_attr(user.get('attributes'), 'sync_id')
+
+            if sync_id:
+                users_with_same_sync_id = users_by_sync_id.setdefault(sync_id, [])
+                users_with_same_sync_id.append(user)
+
+        duplicate_sync_ids = set()
+
+
+        for sync_id, users in users_by_sync_id.items():
+            if len(users) > 1:
+                duplicate_sync_ids.add(sync_id)
+                action.log(
+                    message_type="duplicate_sync_id",
+                    sync_id=sync_id,
+                    user_ids=[u["id"] for u in users],
+                    text="warning, same sync id used for more than one user in keycloak!")
+
+        return set(users_by_sync_id), duplicate_sync_ids
+
+
 def update_keycloak_users(user_updates: List[UserUpdate]):
 
     keycloak_admin = create_keycloak_admin_client()
@@ -212,11 +254,13 @@ def update_keycloak_users(user_updates: List[UserUpdate]):
     updates_by_sync_id = {u.sync_id: u for u in user_updates}
     updates_by_email = {u.email: u for u in user_updates}
 
+    used_sync_ids, duplicate_sync_ids = get_used_and_dup_sync_ids(keycloak_users)
+
     with start_action(action_type="update_keycloak"):
         for user in keycloak_users:
             try:
                 with start_action(action_type="update_keycloak_user", user_id=user["id"]):
-                    user_update = get_user_update(user, updates_by_email, updates_by_sync_id)
+                    user_update = get_user_update(user, updates_by_email, updates_by_sync_id, used_sync_ids, duplicate_sync_ids)
                     update_keycloak_user_attrs(keycloak_admin, user, user_update)
                     update_keycloak_user_group(keycloak_admin, parent_group["id"], user, user_update, group_ids_by_name)
 
