@@ -159,7 +159,8 @@ def update_keycloak_user_attrs(keycloak_admin, user, user_update):
         now_iso = datetime.now(timezone.utc).isoformat()
 
         updated_attrs = {
-            **current_attrs, 'verified': user_update.verified,
+            **current_attrs,
+            'verified': user_update.verified,
             'eligible': user_update.eligible,
             "sync_id": user_update.sync_id,
             "last_sync": now_iso
@@ -225,6 +226,10 @@ def disable_keycloak_user(keycloak_admin, user, reason):
 
         if "eligible" in updated_attrs:
             del updated_attrs["eligible"]
+
+        for group in keycloak_admin.get_user_groups(user["id"]):
+            with start_action(action_type="group_user_remove", group_id=group["id"], group_name=group["name"]):
+                keycloak_admin.group_user_remove(user_id, group["id"])
 
         keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs, "enabled": False})
 
