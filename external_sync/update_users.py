@@ -181,7 +181,7 @@ def update_keycloak_user_attrs(keycloak_admin, user, user_update):
             if changed:
                 action.add_success_fields(changed=changed)
 
-        keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs, "enabled": true})
+        keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs, "enabled": True})
 
 
 def update_keycloak_user_group(keycloak_admin, default_group_id, user, user_update, group_ids_by_name):
@@ -210,7 +210,7 @@ def update_keycloak_user_group(keycloak_admin, default_group_id, user, user_upda
 
 def disable_keycloak_user(keycloak_admin, user):
     with start_action(action_type="disable_keycloak_user") as action:
-        keycloak_admin.update_user(user_id=user["id"], payload={"enabled": false})
+        keycloak_admin.update_user(user_id=user["id"], payload={"enabled": False})
 
 
 def get_used_and_dup_sync_ids(keycloak_users: List[dict]):
