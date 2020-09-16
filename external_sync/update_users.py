@@ -182,7 +182,7 @@ def update_keycloak_user_attrs(keycloak_admin, user, user_update):
                 action.add_success_fields(changed=changed)
 
         if "disable_reason" in current_attrs:
-            updated_attrs["disable_reason"] = ""
+            del updated_attrs["disable_reason"]
 
         keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs, "enabled": True})
 
@@ -220,6 +220,12 @@ def disable_keycloak_user(keycloak_admin, user, reason):
             'disable_reason': reason
         }
 
+        if verified in updated_attrs:
+            del updated_attrs["verified"]
+
+        if eligible in updated_attrs:
+            del updated_attrs["eligible"]
+
         keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs, "enabled": False})
 
 
@@ -253,8 +259,11 @@ def update_keycloak_users(user_updates: List[UserUpdate]):
     keycloak_admin = create_keycloak_admin_client()
 
     with start_action(action_type="get_keycloak_users") as action:
-        keycloak_users = keycloak_admin.get_users({'search': '@'})
-        action.add_success_fields(num_keycloak_users=len(keycloak_users))
+        keycloak_users_all = keycloak_admin.get_users({'search': '@'})
+        action.add_success_fields(all_keycloak_users=len(keycloak_users_all))
+
+        keycloak_users = [user for user in keycloak_users_all if user.get("emailVerified")]
+        action.add_success_fields(email_verified_keycloak_users=len(keycloak_users))
 
     with start_action(action_type="get_keycloak_groups") as action:
         parent_group = keycloak_admin.get_group_by_path(settings.parent_group_path)
