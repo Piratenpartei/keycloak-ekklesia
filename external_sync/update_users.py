@@ -181,7 +181,7 @@ def update_keycloak_user_attrs(keycloak_admin, user, user_update):
             if changed:
                 action.add_success_fields(changed=changed)
 
-        keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs})
+        keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs, "enabled": true})
 
 
 def update_keycloak_user_group(keycloak_admin, default_group_id, user, user_update, group_ids_by_name):
@@ -207,6 +207,10 @@ def update_keycloak_user_group(keycloak_admin, default_group_id, user, user_upda
         if not group_found:
             with start_action(action_type="group_user_add", group_id=wanted_group_id, group_name=user_update.department):
                 keycloak_admin.group_user_add(user_id, wanted_group_id)
+
+def disable_keycloak_user(keycloak_admin, user):
+    with start_action(action_type="disable_keycloak_user") as action:
+        keycloak_admin.update_user(user_id=user["id"], payload={"enabled": false})
 
 
 def get_used_and_dup_sync_ids(keycloak_users: List[dict]):
@@ -264,9 +268,9 @@ def update_keycloak_users(user_updates: List[UserUpdate]):
                     update_keycloak_user_attrs(keycloak_admin, user, user_update)
                     update_keycloak_user_group(keycloak_admin, parent_group["id"], user, user_update, group_ids_by_name)
 
-            # Just go on if syncing failed for a user
+            # Disable if syncing failed for a user (e.g. user no longer a member)
             except Exception:
-                pass
+                disable_keycloak_user(keycloak_admin, user)
 
 
 def main(csv_filepath: str):
