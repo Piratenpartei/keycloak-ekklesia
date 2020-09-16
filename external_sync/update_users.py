@@ -220,10 +220,10 @@ def disable_keycloak_user(keycloak_admin, user, reason):
             'disable_reason': reason
         }
 
-        if verified in updated_attrs:
+        if "verified" in updated_attrs:
             del updated_attrs["verified"]
 
-        if eligible in updated_attrs:
+        if "eligible" in updated_attrs:
             del updated_attrs["eligible"]
 
         keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs, "enabled": False})
