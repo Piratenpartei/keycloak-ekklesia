@@ -91,7 +91,7 @@ register_exception_extractor(SyncCheckFailed, lambda e: {"case": e.case})
 def get_user_update(user, updates_by_email, updates_by_sync_id, used_sync_ids: Set[str], duplicate_sync_ids: Set[str]):
 
     with start_action(action_type="get_user_update") as action:
-        keycloak_sync_id = get_attr(user.get('attributes'), "sync_id")
+        keycloak_sync_id = get_attr(user.get('attributes'), "sync_id").strip()
         keycloak_email = user['email']
 
         if keycloak_sync_id:
@@ -227,7 +227,7 @@ def get_used_and_dup_sync_ids(keycloak_users: List[dict]):
     with start_action(action_type="get_used_and_dup_sync_ids") as action:
         users_by_sync_id = {}
         for user in keycloak_users:
-            sync_id = get_attr(user.get('attributes'), 'sync_id')
+            sync_id = get_attr(user.get('attributes'), 'sync_id').strip()
 
             if sync_id:
                 users_with_same_sync_id = users_by_sync_id.setdefault(sync_id, [])
