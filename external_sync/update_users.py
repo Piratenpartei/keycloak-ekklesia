@@ -229,7 +229,7 @@ def disable_keycloak_user(keycloak_admin, user, reason):
 
         for group in keycloak_admin.get_user_groups(user["id"]):
             with start_action(action_type="group_user_remove", group_id=group["id"], group_name=group["name"]):
-                keycloak_admin.group_user_remove(user_id, group["id"])
+                keycloak_admin.group_user_remove(user["id"], group["id"])
 
         keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs, "enabled": False})
 
