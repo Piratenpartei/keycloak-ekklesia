@@ -14,6 +14,7 @@ Keycloak extensions for Ekklesia.
 
 1. Copy the themes/ekklesia and themes/ekklesia-pirates folders to `<keycloakInstallDir>/themes/`
 2. In the administration interface go to Realm Settings -> Themes and select ekklesia-pirates as Login and Account theme.
+3. To set the welcome theme, go to `<keycloakInstallDir>/standalone/configuration/standalone.xml` and change server > profile > subsystem xmlns="urn:jboss:domain:keycloak-server:1.1" > theme > welcomeTheme to ekklesia-pirates
 
 ### Maintenance
 
