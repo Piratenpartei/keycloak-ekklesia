@@ -3,3 +3,6 @@
 .classpath
 .project
 .settings
+**/__pycache__
+**/.idea
+/external_sync/settings.py
