@@ -1,0 +1,19 @@
+.card-pf img {
+  filter: hue-rotate(180deg) saturate(170%);
+}
+
+a {
+  color: rgb(183, 92, 2);
+}
+
+a:hover, a:focus {
+  color: rgb(136, 68, 0);
+}
+
+.welcome-header h1 {
+  color: white;
+}
+
+.less-padding {
+  padding-top: 10px;
+}
