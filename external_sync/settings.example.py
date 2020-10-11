@@ -15,3 +15,7 @@ field_sync_id = "sync_id"
 field_verified = "verified"
 field_eligible = "eligible"
 field_department = "department"
+
+# Generate output file containing all departments with no display name
+generate_missing_display_names = True
+missing_display_name_file = "missing_display_names.txt"

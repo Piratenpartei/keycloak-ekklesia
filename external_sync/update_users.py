@@ -201,6 +201,13 @@ def update_keycloak_user_group(keycloak_admin, default_group_id, user, user_upda
                 group=user_update.department,
                 msg="no known department name given, using default group")
 
+        if settings.generate_missing_display_names:
+            group = keycloak_admin.get_group(wanted_group_id)
+            if not group or not get_attr(group["attributes"], "display_name"):
+                with open(settings.missing_display_name_file, "r+") as file:
+                    if group["name"] not in file.read():
+                        print(group["name"], file=file)
+
         group_found = False
         for group in keycloak_admin.get_user_groups(user_id):
             if group["id"] == wanted_group_id:
@@ -334,6 +341,9 @@ def update_keycloak_users(user_updates: List[UserUpdate]):
 
 def main(csv_filepath: str):
     with start_task(action_type="update_users"):
+        # Clear missing display names file
+        open(settings.missing_display_name_file, 'w').close()
+
         user_updates = prepare_user_updates(csv_filepath)
         update_keycloak_users(user_updates)
 
