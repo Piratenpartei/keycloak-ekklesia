@@ -71,7 +71,7 @@
         </div>
 
         <div class="col-sm-9 content-area">
-            <#if account.attributes.first_sync??>
+            <#if account.attributes.eligible??>
                 <div class="alert alert-info">
                   <span class="pficon pficon-ok"></span>
                   <span class="kc-feedback-text">${msg("syncInfoYes")}</span>
