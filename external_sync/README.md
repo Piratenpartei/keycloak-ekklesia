@@ -26,3 +26,26 @@ See test.csv and settings.example.py to understand the expected input format.
   ~~~
 
 Logs are produced in JSON format, eliot-tree provides a nice tree view of the log entries.
+
+## Import departments
+
+Imports department data from CSV and creates/updates the corresponding Keycloak groups.
+As an artifact, a hierarchical JSON file is generated.
+
+To convert the CSV to JSON, type:
+  ~~~
+  python department.py parse departments.json departments.csv | eliot-tree
+  ~~~
+
+To import the JSON file into Keycloak, use:
+  ~~~
+  python department.py update departments.json | eliot-tree
+  ~~~
+
+The script will create the hierarchical department structure in Keycloak by
+
+- Creating nonexistent departments
+- Updating still existent departments (only the display name)
+- Deleting no longer existing departments
+
+The display name is saved as the attribute `display_name` of the group.
