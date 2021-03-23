@@ -41,7 +41,8 @@
             <div class="welcome-primary-link">
               <h3><a href="/auth/realms/Piratenlogin/account"><img src="welcome-content/user.png">Account verwalten <i class="fa fa-angle-right link" aria-hidden="true"></i></a></h3>
               <div class="description">
-                Verwalte deine Zugangsdaten und autorisierten Anwendungen.
+                Verwalte deine Zugangsdaten und autorisierten Anwendungen.<br /><br />
+                Um einen Account anzulegen, klicke auf den obigen Link und dann auf Registrieren.
               </div>
             </div>
           </div>
@@ -62,6 +63,9 @@
         <div class="col-xs-12 col-sm-4">
           <div class="card-pf h-m">
             <h3><a href="mailto:support@it.piratenpartei.de"><img src="welcome-content/mail.png">Support - support@it.piratenpartei.de <i class="fa fa-angle-right link" aria-hidden="true"></i></a></h3>
+          </div>
+          <div class="card-pf h-m">
+            <h3><a href="/auth/admin"><img src="welcome-content/keycloak-project.png">Admin Login <i class="fa fa-angle-right link" aria-hidden="true"></i></a></h3>
           </div>
         </div>
       </div>
