@@ -1,37 +1,34 @@
-html.login-pf {
-  background: none;
-}
-
 div.kc-logo-text {
   height: 120px;
   width: 350px;
 }
 
-.btn-primary {
-  background-color:rgb(255, 128, 0);
-  background-image: linear-gradient(to bottom, rgb(251, 160, 69) 0, rgb(255, 128, 0) 100%);
-  border-color: rgb(236, 149, 62);
+:root {
+  --pf-global--primary-color--dark-100: hsl(36, 100%, 50%);
+  --pf-global--primary-color--100: hsl(36, 100%, 52%);
+  --pf-global--primary-color--200: hsl(36, 100%, 45%);
+
+  --pf-global--link--Color: hsl(36, 100%, 40%);
+  --pf-global--link--Color--hover: hsl(36, 100%, 30%);
 }
 
-.btn-primary.active, .btn-primary:active, .btn-primary:focus, .btn-primary:hover {
-  background-color: rgb(255, 128, 0);
-  background-image: none;
-  border-color: rgb(236, 149, 62);
-}
-
-.form-control:hover {
-  border-color: rgb(251, 196, 141)
-}
-
-.form-control:focus {
-  border-color: rgb(236, 149, 62);
-  box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(236,149,62,.6);
-}
-
+/* Fix issue in keycloak, patternfly seems to override this: */
 a {
-  color: rgb(183, 92, 2);
+  font-weight: var(--pf-global--link--FontWeight);
+  color: var(--pf-global--link--Color);
+  text-decoration: var(--pf-global--link--TextDecoration);
 }
 
-a:hover, a:focus, .login-pf a:hover {
-  color: rgb(136, 68, 0);
+.login-pf a:hover {
+  color: var(--pf-global--link--Color--hover);
+  text-decoration: var(--pf-global--link--TextDecoration--hover);
+}
+
+.pf-c-form-control {
+  outline: 0;
+}
+
+#kc-header-wrapper {
+  padding-top:20px;
+  padding-bottom:0px;
 }
