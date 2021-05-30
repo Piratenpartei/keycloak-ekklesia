@@ -18,8 +18,8 @@ Keycloak extensions for Ekklesia.
 
 ### Maintenance
 
-When keycloak is updated, check if the template files account/account.ftl and login/login-update-profile.ftl were
-changed inside the <keycloakInstallDir>/themes/base folder and update them in this theme accordingly.
+When keycloak is updated, check if the template files `account/account.ftl`, `login/login-update-profile.ftl`, `login/login.ftl` or `login/register.ftl` were
+changed inside the `<keycloakInstallDir>/themes/base` folder and update them in this theme accordingly.
 
 
 ## Sync with External Systems
