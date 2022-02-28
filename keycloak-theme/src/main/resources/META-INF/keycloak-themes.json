@@ -1,0 +1,10 @@
+{
+    "themes": [{
+        "name" : "keycloak-ekklesia",
+        "types": [ "account", "login" ]
+    },
+    {
+        "name" : "keycloak-ekklesia-pirates",
+        "types": [ "account", "admin", "email", "login", "welcome" ]
+    }]
+}

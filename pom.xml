@@ -1,57 +1,55 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>keycloak-ekklesia</groupId>
-  <artifactId>keycloak-ekklesia</artifactId>
-  <version>1.0.0</version>
-  <name>keycloak-ekklesia</name>
-  <description>keycloak plugin for ekklesia edemocracy platform</description>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-    <properties>
-    	<keycloak.version>10.0.2</keycloak.version>
-    </properties>
-    
-	<dependencies>
+    <groupId>de.piratenpartei.ekklesia</groupId>
+    <artifactId>keycloak-ekklesia</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <name>Keycloak Ekklesia</name>
+    <description>Parent</description>
+
+    <modules>
+        <module>keycloak-plugin</module>
+        <module>keycloak-theme</module>
+    </modules>
+
+    <dependencies>
         <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-server-spi</artifactId>
-            <version>${keycloak.version}</version>
-            <scope>provided</scope>
+            <groupId>de.piratenpartei.ekklesia</groupId>
+            <artifactId>keycloak-plugin</artifactId>
+            <version>1.0.0</version>
         </dependency>
-
         <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-server-spi-private</artifactId>
-            <version>${keycloak.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-services</artifactId>
-            <version>${keycloak.version}</version>
-            <scope>provided</scope>
+            <groupId>de.piratenpartei.ekklesia</groupId>
+            <artifactId>keycloak-theme</artifactId>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.1</version>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
                 <configuration>
-                    <archive>
-                        <!-- This is required since we need to add the jboss module references
-                            to the resulting jar -->
-                        <manifestEntries>
-                            <!-- Adding explicit dependencies to avoid class-loading issues at runtime -->
-                            <Dependencies>
-                                <![CDATA[org.keycloak.keycloak-common,org.keycloak.keycloak-core,org.keycloak.keycloak-server-spi,org.keycloak.keycloak-server-spi-private,org.apache.httpcomponents,org.keycloak.keycloak-services,org.jboss.logging,javax.api,javax.jms.api,javax.transaction.api,com.fasterxml.jackson.core.jackson-core,com.fasterxml.jackson.core.jackson-annotations,com.fasterxml.jackson.core.jackson-databind]]></Dependencies>
-                        </manifestEntries>
-                    </archive>
+                    <finalName>keycloak-ekklesia</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
-
 </project>

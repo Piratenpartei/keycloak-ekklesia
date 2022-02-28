@@ -1,0 +1,42 @@
+
+body {
+  --pf-global--primary-color--dark-100: hsl(36, 100%, 50%);
+  --pf-global--primary-color--100: hsl(36, 100%, 52%);
+  --pf-global--primary-color--200: hsl(36, 100%, 45%);
+
+  --pf-global--link--Color--dark: hsl(36, 100%, 40%);
+  --pf-global--link--Color--dark--hover: hsl(36, 100%, 25.1%);
+
+  --pf-global--active-color--100: hsl(36, 100%, 50%);
+
+  --pf-global--link--Color: hsl(36, 100%, 40%);
+  --pf-global--link--Color--hover: hsl(36, 100%, 30%);
+}
+
+body .pf-c-page__header .pf-c-button {
+  --pf-c-button--m-primary--BackgroundColor: var(--pf-global--palette--black-800);
+}
+
+body .pf-c-page__header .pf-c-button:hover {
+  --pf-c-button--m-primary--BackgroundColor: var(--pf-global--palette--black-700);
+}
+
+body .brand {
+    height: 45px;
+}
+
+.pf-c-form-control {
+  outline: 0;
+}
+
+#spinner_screen {
+  background-color: var(--pf-global--palette--black-700);
+}
+
+#spinner_screen p {
+  color: white;
+}
+
+#spinner_screen svg {
+  background-color: var(--pf-global--palette--black-700) !important;
+}
