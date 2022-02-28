@@ -4,8 +4,21 @@
 
 Dependencies are managed for all Python scripts at once.
 You can run the scripts in a [poetry shell](https://python-poetry.org/docs/cli/#shell).
+Use `poetry install` to install the defined dependencies.
 
 There's also a requirements.txt that can be used to [pip-install deps in a virtualenv](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
+
+## Set up Keycloak client
+To be able to connect to Keycloak, a client has to be set up using the following steps:
+- In the master realm create a new client (and put the name into settings.py under client_id)
+- Change access type to "confidential"
+- Disable "Direct access grants enabled" and "Standard flow enabled"
+- Enable "Service accounts enabled"
+- Save the page
+- Go to the Credentials tab, copy the Secret and put it into the settings.py (variable client_secret)
+- Go to the Service account roles tab, select "<realm-name>-realm" under Client Roles. (Where <realm-name> is the name of the target realm)
+- Add "manage-users" to the assigned roles.
+- Done! You should be able to use the scripts as described below.
 
 ## Update Users
 

@@ -12,7 +12,6 @@ def create_keycloak_admin_client() -> KeycloakAdmin:
             realm_name=settings.realm,
             client_id=settings.client_id,
             client_secret_key=settings.client_secret,
-            user_realm_name="master",
             verify=True,
             auto_refresh_token=['get', 'post', 'put', 'delete']
         )
