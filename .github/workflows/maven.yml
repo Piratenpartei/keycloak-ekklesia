@@ -1,7 +1,4 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
-
-name: Java CI with Maven
+name: Build Maven project and Keycloak Docker container
 
 on:
   push:
@@ -24,6 +21,14 @@ jobs:
         cache: maven
     - name: Build with Maven
       run: mvn -B package
+    - name: Build docker image
+      run: docker build . -t ekklesia-keycloak
+    - name: Login to docker registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      if: github.ref == 'refs/heads/master'
+    - name: Push docker image
+      run: docker push ghcr.io/${{ github.repository_owner }}/ekklesia-keycloak:latest
+      if: github.ref == 'refs/heads/master'
     - uses: actions/upload-artifact@v2
       with:
         name: Keycloak Ekklesia

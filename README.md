@@ -8,19 +8,30 @@ This project consists of two major parts:
 ## Installation
 
 1. Run `mvn clean package` in the main folder
-2. Copy the resulting jar file from `target/keycloak-ekklesia.jar` to `<keycloakInstallDir>/standalone/deployments`
-3. In the administration interface go to Realm Settings -> Themes and select ekklesia-pirates as Login and Account theme.
-4. To set the welcome theme, go to `<keycloakInstallDir>/standalone/configuration/standalone.xml` and change server > profile > subsystem xmlns="urn:jboss:domain:keycloak-server:1.1" > theme > welcomeTheme to ekklesia-pirates
-5. To make sure that the client can't modify internal ekklesia attributes, add the following block to the keycloak-server node (server > profile > subsystem xmlns="urn:jboss:domain:keycloak-server:1.1") in `standalone.xml`:
+2. Run `docker build . -t ekklesia-keycloak` to build a keycloak container with the extensions installed
+3. Start the container. Example docker-compose:
 ```
-<spi name="userProfile">
-    <provider name="declarative-user-profile" enabled="true">
-        <properties>
-            <property name="read-only-attributes" value="[&quot;ekklesia*&quot;]"/>
-        </properties>
-    </provider>
-</spi>
+keycloak:
+    image: ekklesia-keycloak:latest
+    restart: always
+    environment:
+      - KC_DB_USERNAME=<username>
+      - KC_DB_PASSWORD=<password>
+      - KC_DB_URL_HOST=<host>:<port>
+      - KC_DB_URL_DATABASE=<database>
+      - KC_HTTPS_CERTIFICATE_FILE=/etc/x509/https/tls.crt
+      - KC_HTTPS_CERTIFICATE_KEY_FILE=/etc/x509/https/tls.key
+    ports:
+      - "8443:8443"
+    volumes:
+      - type: bind
+        source: ${PWD}/keycloak/tls.crt
+        target: /etc/x509/https/tls.crt
+      - type: bind
+        source: ${PWD}/keycloak/tls.key
+        target: /etc/x509/https/tls.key
 ```
+4. In the administration interface go to Realm Settings -> Themes and select ekklesia-pirates as Login and Account theme.
 
 ## Theme/Account page
 Two different themes are present, the first modifies functionality, while the second provides the design:
