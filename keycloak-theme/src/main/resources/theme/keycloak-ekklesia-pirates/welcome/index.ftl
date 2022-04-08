@@ -42,7 +42,7 @@
               <h3><a href="realms/Piratenlogin/account"><img src="welcome-content/user.png">Account verwalten <i class="fa fa-angle-right link" aria-hidden="true"></i></a></h3>
               <div class="description">
                 Verwalte deine Zugangsdaten und autorisierten Anwendungen.<br /><br />
-                Um einen Account anzulegen, klicke auf den obigen Link und dann auf Registrieren.
+                Um einen Account anzulegen, klicke auf den obigen Link, dann auf Anmelden und anschließend auf Registrieren.
               </div>
             </div>
           </div>

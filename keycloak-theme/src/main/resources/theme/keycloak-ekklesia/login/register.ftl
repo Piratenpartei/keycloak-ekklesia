@@ -120,18 +120,18 @@
 
             <div class="${properties.kcFormGroupClass!}">
                 <div class="${properties.kcLabelWrapperClass!}">
-                    <label for="user.attributes.ekklesia_sync_id" class="${properties.kcLabelClass!}">${msg("sync_id")}</label>
+                    <label for="user.attributes.sync_id" class="${properties.kcLabelClass!}">${msg("sync_id")}</label>
                 </div>
                 <div class="${properties.kcInputWrapperClass!}">
-                    <input type="text" id="user.attributes.ekklesia_sync_id" class="${properties.kcInputClass!}"
-                           name="user.attributes.ekklesia_sync_id"
-                           value="${(register.formData['user.attributes.ekklesia_sync_id']!'')}"
-                           aria-invalid="<#if messagesPerField.existsError('user.attributes.ekklesia_sync_id')>true</#if>"
+                    <input type="text" id="user.attributes.sync_id" class="${properties.kcInputClass!}"
+                           name="user.attributes.sync_id"
+                           value="${(register.formData['user.attributes.sync_id']!'')}"
+                           aria-invalid="<#if messagesPerField.existsError('user.attributes.sync_id')>true</#if>"
                     />
 
-                    <#if messagesPerField.existsError('user.attributes.ekklesia_sync_id')>
+                    <#if messagesPerField.existsError('user.attributes.sync_id')>
                         <span id="input-error-sync-id" class="${properties.kcInputErrorMessageClass!}" aria-li>
-                            ${kcSanitize(messagesPerField.get('user.attributes.ekklesia_sync_id'))?no_esc}
+                            ${kcSanitize(messagesPerField.get('user.attributes.sync_id'))?no_esc}
                         </span>
                     </#if>
                 </div>

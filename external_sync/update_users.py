@@ -11,7 +11,6 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import List, Optional, Set
-import keycloak
 
 import typer
 from eliot import start_action, start_task, to_file, register_exception_extractor, log_message
@@ -101,7 +100,7 @@ def get_user_update(user, updates_by_email, updates_by_sync_id, used_sync_ids: S
             if user_update_by_sync_id is None:
                 raise SyncCheckFailed("1.1", "unknown sync id")
 
-            if not get_attr(user.get('attributes'), "first_sync"):
+            if not get_attr(user.get('attributes'), "ekklesia_first_sync"):
                 # New user!
                 if keycloak_sync_id in duplicate_sync_ids:
                     raise SyncCheckFailed("1.2", "new user, sync id also used by another user!")
@@ -149,6 +148,7 @@ def get_attr(attributes, attrname, default=None):
     else:
         return value
 
+
 def get_group_id(group_ids_by_name, default_group_id, group_name):
     with start_action(action_type="get_group_id") as action:
         wanted_group_id = group_ids_by_name.get(group_name)
@@ -173,11 +173,6 @@ def update_keycloak_user_attrs(keycloak_admin, user, user_update, group_ids_by_n
         if group_id not in group_name_cache:
             group = keycloak_admin.get_group(group_id)
             if not group or not get_attr(group["attributes"], "display_name"):
-                if settings.generate_missing_display_names:
-                    with open(settings.missing_display_name_file, "r+") as file:
-                        if group["name"] not in file.read():
-                            print(group["name"], file=file)
-
                 group_name = group["name"]
             else:
                 group_name = get_attr(group["attributes"], "display_name")
@@ -186,35 +181,35 @@ def update_keycloak_user_attrs(keycloak_admin, user, user_update, group_ids_by_n
 
         updated_attrs = {
             **current_attrs,
-            'verified': user_update.verified,
-            'eligible': user_update.eligible,
-            "department": group_name_cache[group_id],
+            'ekklesia_verified': user_update.verified,
+            'ekklesia_eligible': user_update.eligible,
+            "ekklesia_department": group_name_cache[group_id],
             "sync_id": user_update.sync_id,
-            "last_sync": now_iso
+            "ekklesia_last_sync": now_iso
         }
 
-        if "first_sync" not in current_attrs:
-            updated_attrs["first_sync"] = now_iso
+        if "ekklesia_first_sync" not in current_attrs:
+            updated_attrs["ekklesia_first_sync"] = now_iso
             action.add_success_fields(is_first_sync=True)
         else:
-            action.add_success_fields(previous_sync=get_attr(current_attrs, "last_sync"))
+            action.add_success_fields(previous_sync=get_attr(current_attrs, "ekklesia_last_sync"))
             changed = {}
 
-            if get_attr(current_attrs, "verified") != user_update.verified:
-                changed["verified"] = [get_attr(current_attrs, "verified"), user_update.verified]
+            if get_attr(current_attrs, "ekklesia_verified") != user_update.verified:
+                changed["ekklesia_verified"] = [get_attr(current_attrs, "ekklesia_verified"), user_update.verified]
 
-            if get_attr(current_attrs, "eligible") != user_update.eligible:
-                changed["eligible"] = [get_attr(current_attrs, "eligible"), user_update.eligible]
+            if get_attr(current_attrs, "ekklesia_eligible") != user_update.eligible:
+                changed["ekklesia_eligible"] = [get_attr(current_attrs, "ekklesia_eligible"), user_update.eligible]
 
             if changed:
                 action.add_success_fields(changed=changed)
 
-        if "disable_reason" in current_attrs:
-            del updated_attrs["disable_reason"]
-        if "disable_time" in current_attrs:
-            del updated_attrs["disable_time"]
-        if "old_attrs" in current_attrs:
-            del updated_attrs["old_attrs"]
+        if "ekklesia_disable_reason" in current_attrs:
+            del updated_attrs["ekklesia_disable_reason"]
+        if "ekklesia_disable_time" in current_attrs:
+            del updated_attrs["ekklesia_disable_time"]
+        if "ekklesia_old_attrs" in current_attrs:
+            del updated_attrs["ekklesia_old_attrs"]
 
         keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs, "enabled": True})
 
@@ -249,13 +244,13 @@ def remove_user_attributes_and_groups(keycloak_admin, user, do_update=True):
         }
 
         # Delete generated attributes
-        for attribute in ["verified", "eligible", "department"]:
+        for attribute in ["ekklesia_verified", "ekklesia_eligible", "ekklesia_department"]:
             if attribute in updated_attrs:
                 old_attrs[attribute] = updated_attrs[attribute]
                 del updated_attrs[attribute]
 
-        if "old_attrs" not in updated_attrs:
-            updated_attrs["old_attrs"] = str(old_attrs)
+        if "ekklesia_old_attrs" not in updated_attrs:
+            updated_attrs["ekklesia_old_attrs"] = str(old_attrs)
 
         # Delete all groups
         for group in keycloak_admin.get_user_groups(user["id"]):
@@ -273,9 +268,9 @@ def disable_keycloak_user(keycloak_admin, user, reason):
     with start_action(action_type="disable_keycloak_user"):
 
         attributes = remove_user_attributes_and_groups(keycloak_admin, user, False)
-        attributes["disable_reason"] = reason
-        if "disable_time" not in attributes:
-            attributes["disable_time"] = datetime.now(timezone.utc).isoformat()
+        attributes["ekklesia_disable_reason"] = reason
+        if "ekklesia_disable_time" not in attributes:
+            attributes["ekklesia_disable_time"] = datetime.now(timezone.utc).isoformat()
 
         keycloak_admin.update_user(user_id=user["id"], payload={"attributes": attributes, "enabled": False})
 
@@ -364,9 +359,6 @@ def update_keycloak_users(user_updates: List[UserUpdate]):
 
 def main(csv_filepath: str):
     with start_task(action_type="update_users"):
-        # Clear missing display names file
-        open(settings.missing_display_name_file, 'w').close()
-
         user_updates = prepare_user_updates(csv_filepath)
         if len(user_updates) == 0:
             log_message(message_type="user_list_empty")

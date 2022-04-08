@@ -36,7 +36,7 @@ keycloak:
 ## Theme/Account page
 Two different themes are present, the first modifies functionality, while the second provides the design:
 - ekklesia
-  - Adds ekklesia_sync_id field to registration form.
+  - Adds sync_id field to registration form.
   - Hides the first and last name fields and fills them with default values.
   - Extends the account page with a sync info page and beo settings
 - ekklesia-pirates: Pirate design for Keycloak (has the ekklesia theme as parent).

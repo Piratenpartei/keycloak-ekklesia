@@ -34,7 +34,13 @@ jobs:
     - name: Push docker image
       run: docker push ghcr.io/${{ env.OWNER_LC }}/ekklesia-keycloak:latest
       if: github.event_name != 'pull_request'
+    - name: Save docker image
+      run: docker save -o ekklesia-keycloak.tar ghcr.io/${{ env.OWNER_LC }}/ekklesia-keycloak:latest
     - uses: actions/upload-artifact@v2
       with:
-        name: Keycloak Ekklesia
+        name: Keycloak Docker Image
+        path: ekklesia-keycloak.tar
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Keycloak Ekklesia Plugin
         path: target/keycloak-ekklesia.jar
