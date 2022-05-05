@@ -56,7 +56,9 @@ def prepare_user_updates(csv_filepath: str) -> List[UserUpdate]:
                     sync_id=sync_id
                 )
                 if settings.field_verified:
-                    user.verified = row[settings.field_verified] is not None
+                    val = row[settings.field_verified]
+                    val = val.strip() if val else ""
+                    user.verified = True if val else False
                 if settings.field_eligible:
                     user.eligible = row[settings.field_eligible] == "-1"
                 if settings.field_department:
