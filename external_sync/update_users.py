@@ -56,9 +56,9 @@ def prepare_user_updates(csv_filepath: str) -> List[UserUpdate]:
                     sync_id=sync_id
                 )
                 if settings.field_verified:
-                    user.verified = row[settings.field_verified] == "1"
+                    user.verified = row[settings.field_verified] is not None
                 if settings.field_eligible:
-                    user.eligible = row[settings.field_eligible] == "1"
+                    user.eligible = row[settings.field_eligible] == "-1"
                 if settings.field_department:
                     user.department = row[settings.field_department]
                 users.append(user)
@@ -77,33 +77,38 @@ def find_all_groups(group):
 
 class SyncCheckFailed(Exception):
 
-    def __init__(self, case, text):
+    def __init__(self, case, text, readable_msg):
         self.case = case
+        self.readable_msg = readable_msg
         super().__init__(text)
 
 
 register_exception_extractor(SyncCheckFailed, lambda e: {"case": e.case})
 
 
-def get_user_update(user, updates_by_email, updates_by_sync_id, used_sync_ids: Set[str], duplicate_sync_ids: Set[str]):
+def get_user_update(user, updates_by_email, updates_by_sync_id, used_sync_ids: Set[str]):
 
     with start_action(action_type="get_user_update") as action:
-        keycloak_sync_id = get_attr(user.get('attributes'), "sync_id")
-        keycloak_sync_id = keycloak_sync_id.strip() if keycloak_sync_id else ""
-        keycloak_email = user['email']
+        verified_sync_id = get_attr(user.get('attributes'), "ekklesia_sync_id")
+        # If user has new sync id, check if already used by another user
+        if not verified_sync_id:
+            keycloak_sync_id = get_attr(user.get('attributes'), "sync_id")
+            keycloak_sync_id = keycloak_sync_id.strip() if keycloak_sync_id else ""
+            if keycloak_sync_id:
+                if keycloak_sync_id in used_sync_ids:
+                    raise SyncCheckFailed("1.2", "new user, sync id also used by another user!",
+                                          "Token wird bereits von anderem User verwendet")
+                verified_sync_id = keycloak_sync_id
+                used_sync_ids.add(keycloak_sync_id)
 
-        if keycloak_sync_id:
+        keycloak_email = user['email']
+        if verified_sync_id:
             # 1. user has mail and sync_id attr => new user with manually entered token or existing user
             user_update_by_sync_id = updates_by_sync_id.get(keycloak_sync_id)
             user_update_by_mail = updates_by_email.get(keycloak_email)
 
             if user_update_by_sync_id is None:
-                raise SyncCheckFailed("1.1", "unknown sync id")
-
-            if not get_attr(user.get('attributes'), "ekklesia_first_sync"):
-                # New user!
-                if keycloak_sync_id in duplicate_sync_ids:
-                    raise SyncCheckFailed("1.2", "new user, sync id also used by another user!")
+                raise SyncCheckFailed("1.1", "unknown sync id", "Token ist unbekannt")
 
             if user_update_by_mail is None:
                 action.add_success_fields(
@@ -115,7 +120,8 @@ def get_user_update(user, updates_by_email, updates_by_sync_id, used_sync_ids: S
                 action.add_success_fields(case="1.4", text="sync id matches email")
             else:
                 raise SyncCheckFailed(
-                    "1.5", "sync id does not match member's mail address, other member with that address found"
+                    "1.5", "sync id does not match member's mail address, other member with that address found",
+                    "Dein eingegebenes Token passt nicht zu deiner E-Mail Adresse. Sie gehören zu unterschiedlichen Mitgliedern."
                 )
 
         else:
@@ -125,11 +131,12 @@ def get_user_update(user, updates_by_email, updates_by_sync_id, used_sync_ids: S
 
             if user_update_by_mail:
                 if user_update_by_mail.sync_id in used_sync_ids:
-                    raise SyncCheckFailed("2.3", "new user, mail match would create second user for an existing sync id!")
+                    raise SyncCheckFailed("2.3", "new user, mail match would create second user for an existing sync id!", "Das zur angegebenen E-Mail Adresse zugehörige Mitglied hat bereits einen Piratenlogin Account")
 
+                used_sync_ids.add(user_update_by_mail.sync_id)
                 action.add_success_fields(case="2.1", text="new user, no sync id, known email")
             else:
-                raise SyncCheckFailed("2.2", "new user, no sync id, unknown mail")
+                raise SyncCheckFailed("2.2", "new user, no sync id, unknown mail", "Es wurde kein Token angegeben und deine E-Mail Adresse ist nicht bekannt.")
 
     return user_update_by_mail or user_update_by_sync_id
 
@@ -183,8 +190,9 @@ def update_keycloak_user_attrs(keycloak_admin, user, user_update, group_ids_by_n
             **current_attrs,
             'ekklesia_verified': user_update.verified,
             'ekklesia_eligible': user_update.eligible,
+            "ekklesia_external_voting": "false",
             "ekklesia_department": group_name_cache[group_id],
-            "sync_id": user_update.sync_id,
+            "ekklesia_sync_id": user_update.sync_id,
             "ekklesia_last_sync": now_iso
         }
 
@@ -206,12 +214,14 @@ def update_keycloak_user_attrs(keycloak_admin, user, user_update, group_ids_by_n
 
         if "ekklesia_disable_reason" in current_attrs:
             del updated_attrs["ekklesia_disable_reason"]
+        if "ekklesia_disable_reason_display" in current_attrs:
+            del updated_attrs["ekklesia_disable_reason_display"]
         if "ekklesia_disable_time" in current_attrs:
             del updated_attrs["ekklesia_disable_time"]
         if "ekklesia_old_attrs" in current_attrs:
             del updated_attrs["ekklesia_old_attrs"]
 
-        keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs, "enabled": True})
+        #keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs})
 
 
 def update_keycloak_user_group(keycloak_admin, user, user_update, group_ids_by_name, default_group_id):
@@ -226,11 +236,13 @@ def update_keycloak_user_group(keycloak_admin, user, user_update, group_ids_by_n
                 group_found = True
             elif group["path"].startswith(settings.parent_group_path):
                 with start_action(action_type="group_user_remove", group_id=group["id"], group_name=group["name"]):
-                    keycloak_admin.group_user_remove(user_id, group["id"])
+                    pass
+                    #keycloak_admin.group_user_remove(user_id, group["id"])
 
         if not group_found:
             with start_action(action_type="group_user_add", group_id=wanted_group_id, group_name=user_update.department):
-                keycloak_admin.group_user_add(user_id, wanted_group_id)
+                pass
+                #keycloak_admin.group_user_add(user_id, wanted_group_id)
 
 
 def remove_user_attributes_and_groups(keycloak_admin, user, do_update=True):
@@ -244,7 +256,7 @@ def remove_user_attributes_and_groups(keycloak_admin, user, do_update=True):
         }
 
         # Delete generated attributes
-        for attribute in ["ekklesia_verified", "ekklesia_eligible", "ekklesia_department"]:
+        for attribute in ["ekklesia_verified", "ekklesia_eligible", "ekklesia_external_voting", "ekklesia_department", "ekklesia_sync_id"]:
             if attribute in updated_attrs:
                 old_attrs[attribute] = updated_attrs[attribute]
                 del updated_attrs[attribute]
@@ -256,35 +268,39 @@ def remove_user_attributes_and_groups(keycloak_admin, user, do_update=True):
         for group in keycloak_admin.get_user_groups(user["id"]):
             if group["path"].startswith(settings.parent_group_path):
                 with start_action(action_type="group_user_remove", group_id=group["id"], group_name=group["name"]):
-                    keycloak_admin.group_user_remove(user["id"], group["id"])
+                    pass
+                    #keycloak_admin.group_user_remove(user["id"], group["id"])
 
         if do_update:
-            keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs})
+            pass
+            #keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs})
 
         return updated_attrs
 
 
-def disable_keycloak_user(keycloak_admin, user, reason):
+def disable_keycloak_user(keycloak_admin, user, reason: SyncCheckFailed):
     with start_action(action_type="disable_keycloak_user"):
 
         attributes = remove_user_attributes_and_groups(keycloak_admin, user, False)
-        attributes["ekklesia_disable_reason"] = reason
+        attributes["ekklesia_disable_reason"] = str(reason)
+        attributes["ekklesia_disable_reason_display"] = reason.readable_msg
         if "ekklesia_disable_time" not in attributes:
             attributes["ekklesia_disable_time"] = datetime.now(timezone.utc).isoformat()
 
-        keycloak_admin.update_user(user_id=user["id"], payload={"attributes": attributes, "enabled": False})
+        #keycloak_admin.update_user(user_id=user["id"], payload={"attributes": attributes})
 
 
 def logout_everywhere(keycloak_admin, user):
     with start_action(action_type="logout_everywhere"):
-        keycloak_admin.logout(user["id"])
+        pass
+        #keycloak_admin.logout(user["id"])
 
 
 def get_used_and_dup_sync_ids(keycloak_users: List[dict]):
     with start_action(action_type="get_used_and_dup_sync_ids") as action:
         users_by_sync_id = {}
         for user in keycloak_users:
-            sync_id = get_attr(user.get('attributes'), 'sync_id')
+            sync_id = get_attr(user.get('attributes'), 'ekklesia_sync_id')
             sync_id = sync_id.strip() if sync_id else ""
 
             if sync_id:
@@ -302,7 +318,7 @@ def get_used_and_dup_sync_ids(keycloak_users: List[dict]):
                     user_ids=[u["id"] for u in users],
                     text="warning, same sync id used for more than one user in keycloak!")
 
-        return set(users_by_sync_id), duplicate_sync_ids
+        return set(users_by_sync_id)
 
 
 def update_keycloak_users(user_updates: List[UserUpdate]):
@@ -326,7 +342,7 @@ def update_keycloak_users(user_updates: List[UserUpdate]):
     updates_by_sync_id = {u.sync_id: u for u in user_updates}
     updates_by_email = {u.email: u for u in user_updates}
 
-    used_sync_ids, duplicate_sync_ids = get_used_and_dup_sync_ids(keycloak_users)
+    used_sync_ids = get_used_and_dup_sync_ids(keycloak_users)
 
     keycloak_users_no_verified_email = [user for user in keycloak_users if not user.get("emailVerified")]
 
@@ -342,14 +358,14 @@ def update_keycloak_users(user_updates: List[UserUpdate]):
         for user in keycloak_users_verified_email:
             try:
                 with start_action(action_type="update_keycloak_user", user_id=user["id"]):
-                    user_update = get_user_update(user, updates_by_email, updates_by_sync_id, used_sync_ids, duplicate_sync_ids)
+                    user_update = get_user_update(user, updates_by_email, updates_by_sync_id, used_sync_ids)
                     update_keycloak_user_attrs(keycloak_admin, user, user_update, group_ids_by_name, parent_group["id"], group_name_cache)
                     update_keycloak_user_group(keycloak_admin, user, user_update, group_ids_by_name, parent_group["id"])
 
             # Disable if syncing failed for a user (e.g. user no longer a member)
             except SyncCheckFailed as e:
                 with start_action(action_type="sync_check_failed", user_id=user["id"], problem=str(e)):
-                    disable_keycloak_user(keycloak_admin, user, str(e))
+                    disable_keycloak_user(keycloak_admin, user, e)
                     logout_everywhere(keycloak_admin, user)
 
             # Ignore other exceptions
