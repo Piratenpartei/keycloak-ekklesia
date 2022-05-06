@@ -1,4 +1,3 @@
- 
 /*
  * Copyright 2019 Red Hat, Inc. and/or its affiliates.
  *
@@ -98,7 +97,7 @@ export class ContentAlert extends React.Component<ContentAlertProps, ContentAler
                         isLiveRegion
                         variant={variant}
                         title={message}
-                        action={
+                        actionClose={
                             <AlertActionCloseButton
                                 title={message}
                                 variantLabel={`${variant} alert`}

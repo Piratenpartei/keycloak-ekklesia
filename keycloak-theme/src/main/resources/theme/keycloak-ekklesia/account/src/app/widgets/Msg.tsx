@@ -1,4 +1,3 @@
- 
 /*
  * Copyright 2018 Red Hat, Inc. and/or its affiliates.
  *
@@ -59,7 +58,7 @@ export class Msg extends React.Component<MsgProps> {
             })
         }
 
-        return unescape(message);
+        return message;
     }
 
     // if the message key has Freemarker syntax, remove it

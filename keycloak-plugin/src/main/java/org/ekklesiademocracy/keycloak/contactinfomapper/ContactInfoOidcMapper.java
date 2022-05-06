@@ -134,10 +134,15 @@ public class ContactInfoOidcMapper extends AbstractOIDCProtocolMapper implements
     @Override
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession, KeycloakSession keycloakSession, ClientSessionContext clientSessionCtx) {
         String email= userSession.getUser().getEmail();
-        List<String> matrix= userSession.getUser().getAttribute("notify_matrix_ids");
+        List<String> en_email = userSession.getUser().getAttribute("notify_enable_email");
+        boolean enable_email = true; // Email notification should be enabled if attribute is not set
+        if (en_email.size() > 0) {
+            enable_email = Boolean.parseBoolean(en_email.get(0));
+        }
+        List<String> matrix = userSession.getUser().getAttribute("notify_matrix_ids");
         String encryptedMessage="";
 
-        if (email!=null && email.trim().length()>0 || matrix!=null && matrix.size()>0) {
+        if (email!=null && email.trim().length()>0 && enable_email || matrix!=null && matrix.size()>0) {
 	        String secretKeyProperty= mappingModel.getConfig().getOrDefault(CONFIG_PROPERTY_SECRET_KEY, "");
 
 	        JsonBuilderFactory jsonFactory= Json.createBuilderFactory(null);
@@ -147,9 +152,11 @@ public class ContactInfoOidcMapper extends AbstractOIDCProtocolMapper implements
 	        	for (String i: matrix)
 	        		if (i!=null && i.trim().length()>0)
 	        			matrixArrayBuilder.add(i);
+
 	        JsonArrayBuilder emailArrayBuilder=jsonFactory.createArrayBuilder();
-	        if (email!=null && email.trim().length()>0)
+	        if (email!=null && email.trim().length()>0 && enable_email)
 	        	emailArrayBuilder.add(email);
+
 	        JsonObject json= jsonFactory.createObjectBuilder().add("timestamp", format.format(new Date()))
 	        		.add("transports", jsonFactory.createObjectBuilder()
 	        		    .add("matrix",

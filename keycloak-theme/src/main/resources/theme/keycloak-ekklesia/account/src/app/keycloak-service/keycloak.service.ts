@@ -1,4 +1,3 @@
- 
 /*
  * Copyright 2017 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
@@ -14,13 +13,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
- * Modifications from the original:
- * - Changed success and error Promise callbacks to then and catch
  */
+//import Keycloak, { KeycloakLoginOptions } from "../../../../../../../../../../adapters/oidc/js";
 
 declare const baseUrl: string;
-//export type KeycloakClient = Keycloak.KeycloakInstance;
+//export type KeycloakClient = Keycloak;
 
 export class KeycloakService {
     private keycloakAuth: any;
@@ -67,10 +64,10 @@ export class KeycloakService {
             if (this.keycloakAuth.token) {
                 this.keycloakAuth
                     .updateToken(5)
-                    .then(() => {
+                    .success(() => {
                         resolve(this.keycloakAuth.token as string);
                     })
-                    .catch(() => {
+                    .error(() => {
                         reject('Failed to refresh token');
                     });
             } else {

@@ -1,4 +1,4 @@
-FROM quay.io/keycloak/keycloak:17.0.0
+FROM quay.io/keycloak/keycloak:18.0.0
 ENV KC_FEATURES=admin2
 ENV KC_DB=postgres
 COPY target/keycloak-ekklesia.jar /opt/keycloak/providers/
