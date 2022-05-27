@@ -224,7 +224,7 @@ def update_keycloak_user_attrs(keycloak_admin, user, user_update, group_ids_by_n
         if "ekklesia_old_attrs" in current_attrs:
             del updated_attrs["ekklesia_old_attrs"]
 
-        #keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs})
+        keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs})
 
 
 def update_keycloak_user_group(keycloak_admin, user, user_update, group_ids_by_name, default_group_id):
@@ -239,13 +239,11 @@ def update_keycloak_user_group(keycloak_admin, user, user_update, group_ids_by_n
                 group_found = True
             elif group["path"].startswith(settings.parent_group_path):
                 with start_action(action_type="group_user_remove", group_id=group["id"], group_name=group["name"]):
-                    pass
-                    #keycloak_admin.group_user_remove(user_id, group["id"])
+                    keycloak_admin.group_user_remove(user_id, group["id"])
 
         if not group_found:
             with start_action(action_type="group_user_add", group_id=wanted_group_id, group_name=user_update.department):
-                pass
-                #keycloak_admin.group_user_add(user_id, wanted_group_id)
+                keycloak_admin.group_user_add(user_id, wanted_group_id)
 
 
 def remove_user_attributes_and_groups(keycloak_admin, user, do_update=True):
@@ -271,12 +269,10 @@ def remove_user_attributes_and_groups(keycloak_admin, user, do_update=True):
         for group in keycloak_admin.get_user_groups(user["id"]):
             if group["path"].startswith(settings.parent_group_path):
                 with start_action(action_type="group_user_remove", group_id=group["id"], group_name=group["name"]):
-                    pass
-                    #keycloak_admin.group_user_remove(user["id"], group["id"])
+                    keycloak_admin.group_user_remove(user["id"], group["id"])
 
         if do_update:
-            pass
-            #keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs})
+            keycloak_admin.update_user(user_id=user["id"], payload={"attributes": updated_attrs})
 
         return updated_attrs
 
@@ -290,13 +286,12 @@ def disable_keycloak_user(keycloak_admin, user, reason: SyncCheckFailed):
         if "ekklesia_disable_time" not in attributes:
             attributes["ekklesia_disable_time"] = datetime.now(timezone.utc).isoformat()
 
-        #keycloak_admin.update_user(user_id=user["id"], payload={"attributes": attributes})
+        keycloak_admin.update_user(user_id=user["id"], payload={"attributes": attributes})
 
 
 def logout_everywhere(keycloak_admin, user):
     with start_action(action_type="logout_everywhere"):
-        pass
-        #keycloak_admin.logout(user["id"])
+        keycloak_admin.logout(user["id"])
 
 
 def get_used_and_dup_sync_ids(keycloak_users: List[dict]):
