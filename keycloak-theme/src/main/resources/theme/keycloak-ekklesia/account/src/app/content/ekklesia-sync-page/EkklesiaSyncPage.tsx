@@ -121,6 +121,13 @@ export class EkklesiaSyncPage extends React.Component {
             sync_content = <div>
                 <DataListItemRow>
                     <DataListItemCells dataListCells={[
+                        <DataListCell width={4}>
+                            <p><strong><Msg msgKey="ekklesia-valid" /></strong></p>
+                        </DataListCell>
+                    ]}/>
+                </DataListItemRow>
+                <DataListItemRow>
+                    <DataListItemCells dataListCells={[
                         <DataListCell width={1}>
                             <p><strong>
                                 <Msg msgKey="ekklesia-sync-last" />
