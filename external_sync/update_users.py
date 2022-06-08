@@ -127,7 +127,7 @@ def get_user_update(user, updates_by_email, updates_by_sync_id, used_sync_ids: S
 
         else:
             # 2. user has mail but no sync_id attr => new user
-            user_update_by_mail = updates_by_email.get(keycloak_email)
+            user_update_by_mail = updates_by_email.get(keycloak_email.lower())
             user_update_by_sync_id = None
 
             if user_update_by_mail:
@@ -338,7 +338,7 @@ def update_keycloak_users(user_updates: List[UserUpdate]):
         )
 
     updates_by_sync_id = {u.sync_id: u for u in user_updates}
-    updates_by_email = {u.email: u for u in user_updates}
+    updates_by_email = {u.email.lower(): u for u in user_updates}
 
     used_sync_ids = get_used_and_dup_sync_ids(keycloak_users)
 
