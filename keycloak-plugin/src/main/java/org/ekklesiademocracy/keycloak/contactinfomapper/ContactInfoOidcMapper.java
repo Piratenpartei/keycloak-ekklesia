@@ -1,21 +1,15 @@
 package org.ekklesiademocracy.keycloak.contactinfomapper;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.json.Json;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
 
 import org.jboss.logging.Logger;
 import org.keycloak.models.ClientSessionContext;
@@ -31,6 +25,7 @@ import org.keycloak.protocol.oidc.mappers.UserPropertyMapper;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.provider.ProviderConfigurationBuilder;
 import org.keycloak.representations.IDToken;
+import org.keycloak.util.JsonSerialization;
 
 public class ContactInfoOidcMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
 
@@ -134,46 +129,54 @@ public class ContactInfoOidcMapper extends AbstractOIDCProtocolMapper implements
     @Override
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession, KeycloakSession keycloakSession, ClientSessionContext clientSessionCtx) {
         String email= userSession.getUser().getEmail();
-        List<String> en_email = userSession.getUser().getAttribute("notify_enable_email");
+        List<String> en_email = userSession.getUser().getAttributes().get("notify_enable_email");
         boolean enable_email = true; // Email notification should be enabled if attribute is not set
         if (en_email.size() > 0) {
             enable_email = Boolean.parseBoolean(en_email.get(0));
         }
-        List<String> matrix = userSession.getUser().getAttribute("notify_matrix_ids");
-        String encryptedMessage="";
+        List<String> matrix = userSession.getUser().getAttributes().get("notify_matrix_ids");
+        String encryptedMessage = "";
 
-        if (email!=null && email.trim().length()>0 && enable_email || matrix!=null && matrix.size()>0) {
-	        String secretKeyProperty= mappingModel.getConfig().getOrDefault(CONFIG_PROPERTY_SECRET_KEY, "");
+        boolean use_email = email != null && email.trim().length() > 0 && enable_email;
+        boolean use_matrix = matrix != null && matrix.size() > 0;
+        if (use_email || use_matrix) {
+            String secretKeyProperty = mappingModel.getConfig().getOrDefault(CONFIG_PROPERTY_SECRET_KEY, MYSECRET);
 
-	        JsonBuilderFactory jsonFactory= Json.createBuilderFactory(null);
-	        SimpleDateFormat format= new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-	        JsonArrayBuilder matrixArrayBuilder=jsonFactory.createArrayBuilder();
-	        if (matrix!=null && matrix.size()>0)
-	        	for (String i: matrix)
-	        		if (i!=null && i.trim().length()>0)
-	        			matrixArrayBuilder.add(i);
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+            List<String> matrix_array = new ArrayList<>();
+            if (use_matrix)
+                for (String i : matrix)
+                    if (i != null && i.trim().length() > 0)
+                        matrix_array.add(i);
 
-	        JsonArrayBuilder emailArrayBuilder=jsonFactory.createArrayBuilder();
-	        if (email!=null && email.trim().length()>0 && enable_email)
-	        	emailArrayBuilder.add(email);
+            List<String> mail_array = new ArrayList<>();
+            if (use_email)
+                mail_array.add(email);
 
-	        JsonObject json= jsonFactory.createObjectBuilder().add("timestamp", format.format(new Date()))
-	        		.add("transports", jsonFactory.createObjectBuilder()
-	        		    .add("matrix",
-	        				jsonFactory.createObjectBuilder().add("matrix_ids", matrixArrayBuilder)
-	        				)
-	        		    .add("mail",
-	        		    	jsonFactory.createObjectBuilder().add("to", emailArrayBuilder)
-	        		    	)
-	        		    )
-	                .build();
+            Properties matrix_json = new Properties();
+            matrix_json.put("matrix_ids", matrix_array.toArray());
 
-	        String message=json.toString();
-	        String usedSecretKey= secretKeyProperty!=null && secretKeyProperty.trim().length()>0 ? secretKeyProperty : MYSECRET;
-	        encryptedMessage= encrypt(message,usedSecretKey);
+            Properties mail_json = new Properties();
+            mail_json.put("to", mail_array.toArray());
+
+            Properties transports = new Properties();
+            transports.put("matrix", matrix_json);
+            transports.put("mail", mail_json);
+
+            Properties json = new Properties();
+            json.put("timestamp", format.format(new Date()));
+            json.put("transports", transports);
+
+            String message;
+            try {
+                message = JsonSerialization.writeValueAsString(json);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+	        encryptedMessage = encrypt(message, secretKeyProperty);
         }
 
-        Object claimValue = "aesgcm:"+encryptedMessage;
+        Object claimValue = "aesgcm:" + encryptedMessage;
         OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claimValue);
     }
 }
