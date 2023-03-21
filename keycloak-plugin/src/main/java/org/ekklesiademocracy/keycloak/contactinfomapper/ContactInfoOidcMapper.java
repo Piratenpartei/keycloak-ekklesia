@@ -131,7 +131,7 @@ public class ContactInfoOidcMapper extends AbstractOIDCProtocolMapper implements
         String email= userSession.getUser().getEmail();
         List<String> en_email = userSession.getUser().getAttributes().get("notify_enable_email");
         boolean enable_email = true; // Email notification should be enabled if attribute is not set
-        if (en_email.size() > 0) {
+        if (en_email != null && en_email.size() > 0) {
             enable_email = Boolean.parseBoolean(en_email.get(0));
         }
         List<String> matrix = userSession.getUser().getAttributes().get("notify_matrix_ids");

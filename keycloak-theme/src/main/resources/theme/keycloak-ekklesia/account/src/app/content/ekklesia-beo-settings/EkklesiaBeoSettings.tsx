@@ -96,6 +96,9 @@ export class EkklesiaBeoSettings extends React.Component {
       this.context!.doPost<void>("/", reqData)
           .then(() => {
               ContentAlert.success('accountUpdatedMessage');
+          })
+          .catch(() => {
+              ContentAlert.warning("accountUpdateFailedReload");
           });
     }
 
