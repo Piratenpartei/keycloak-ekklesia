@@ -6,3 +6,4 @@
 **/__pycache__
 **/.idea
 /external_sync/settings.py
+/external_sync/update_log.json

@@ -39,7 +39,7 @@ class UserUpdate:
 def prepare_user_updates(csv_filepath: str) -> List[UserUpdate]:
 
     with start_action(action_type="read_user_csv", csv_filepath=csv_filepath) as action:
-        with open(csv_filepath) as f:
+        with open(csv_filepath, encoding='utf-8-sig') as f:
             reader = csv.DictReader(f, quotechar=settings.csv_quotechar, strict=True, delimiter=settings.csv_delimiter)
             user_rows = list(reader)
 
@@ -58,7 +58,7 @@ def prepare_user_updates(csv_filepath: str) -> List[UserUpdate]:
                 if settings.field_verified:
                     val = row[settings.field_verified]
                     val = val.strip() if val else ""
-                    user.verified = True if val else False
+                    user.verified = True if val and val != "NULL" else False
                 if settings.field_eligible:
                     user.eligible = row[settings.field_eligible] == "-1"
                 if settings.field_department:
@@ -374,6 +374,7 @@ def update_keycloak_users(user_updates: List[UserUpdate]):
 def main(csv_filepath: str):
     with start_task(action_type="update_users"):
         user_updates = prepare_user_updates(csv_filepath)
+
         if len(user_updates) == 0:
             log_message(message_type="user_list_empty")
             return
