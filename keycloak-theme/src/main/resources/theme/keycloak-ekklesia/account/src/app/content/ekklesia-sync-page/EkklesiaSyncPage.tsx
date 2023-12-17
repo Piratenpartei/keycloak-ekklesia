@@ -88,7 +88,7 @@ export class EkklesiaSyncPage extends React.Component {
         let vals = this.state.formFields.attributes!;
 
         let dateVal = Date.parse(vals.ekklesia_last_sync!);
-        let options = {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric'};
+        let options = {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric'} as const;
         let date = isNaN(dateVal) ? "-" : new Intl.DateTimeFormat("default", options).format(dateVal);
 
         let eligible = vals.ekklesia_eligible == "true" ? Msg.localize("ekklesia-yes") : Msg.localize("ekklesia-no");
