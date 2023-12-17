@@ -22,7 +22,7 @@ interface NotifySettings {
 
 export class EkklesiaBeoSettings extends React.Component {
     static contextType = AccountServiceContext;
-    context: React.ContextType<typeof AccountServiceContext>;
+    //context: React.ContextType<typeof AccountServiceContext>;
 
     private readonly DEFAULT_STATE: NotifySettings = {
       formFields: {},
@@ -36,7 +36,7 @@ export class EkklesiaBeoSettings extends React.Component {
     }
 
     fetchPersonalInfo() {
-      this.context!.doGet<FormFields>("/")
+      /*this.context!.doGet<FormFields>("/")
       .then((response: HttpResponse<FormFields>) => {
         this.setState(this.DEFAULT_STATE);
         const formFields = response.data;
@@ -54,7 +54,7 @@ export class EkklesiaBeoSettings extends React.Component {
         }
 
         this.setState({...{ formFields: formFields }});
-      });
+      });*/
     }
 
     private handleChange = (value: string, event: React.FormEvent<HTMLInputElement>) => {
@@ -93,13 +93,13 @@ export class EkklesiaBeoSettings extends React.Component {
       reqData.attributes!.notify_matrix_ids = matrixIds.filter(id => id);
       this.setState({...{ formFields: reqData }});
 
-      this.context!.doPost<void>("/", reqData)
+      /*this.context!.doPost<void>("/", reqData)
           .then(() => {
               ContentAlert.success('accountUpdatedMessage');
           })
           .catch(() => {
               ContentAlert.warning("accountUpdateFailedReload");
-          });
+          });*/
     }
 
     private addMatrix = (): void => {
