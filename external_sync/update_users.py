@@ -19,6 +19,8 @@ from eliot.stdlib import EliotHandler
 import settings
 from common import create_keycloak_admin_client
 
+from keycloak import urls_patterns
+
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.DEBUG)
 root_logger.addHandler(EliotHandler())
@@ -70,9 +72,21 @@ def prepare_user_updates(csv_filepath: str) -> List[UserUpdate]:
     return users
 
 
-def find_all_groups(group):
-    if group['subGroups']:
-        return [g for group in group['subGroups'] for g in find_all_groups(group)] + [group]
+def get_subgroups(keycloak, group_id, query=None):
+    query = query or {}
+    params_path = {"realm-name": settings.realm, "id": group_id}
+    url = urls_patterns.URL_ADMIN_GROUP_CHILD.format(**params_path)
+
+    if "first" in query or "max" in query:
+        return keycloak._KeycloakAdmin__fetch_paginated(url, query)
+
+    return keycloak._KeycloakAdmin__fetch_all(url, query)
+
+
+def find_all_groups(keycloak, group):
+    subgroups = get_subgroups(keycloak, group['id'])
+    if subgroups:
+        return [g for group in subgroups for g in find_all_groups(keycloak, group)] + [group]
     else:
         return [group]
 
@@ -291,7 +305,7 @@ def disable_keycloak_user(keycloak_admin, user, reason: SyncCheckFailed):
 
 def logout_everywhere(keycloak_admin, user):
     with start_action(action_type="logout_everywhere"):
-        keycloak_admin.logout(user["id"])
+        keycloak_admin.user_logout(user["id"])
 
 
 def get_used_and_dup_sync_ids(keycloak_users: List[dict]):
@@ -329,7 +343,7 @@ def update_keycloak_users(user_updates: List[UserUpdate]):
 
     with start_action(action_type="get_keycloak_groups") as action:
         parent_group = keycloak_admin.get_group_by_path(settings.parent_group_path)
-        all_groups = find_all_groups(parent_group)
+        all_groups = find_all_groups(keycloak_admin, parent_group)
         group_ids_by_name = {g['name']: g['id'] for g in all_groups}
         action.add_success_fields(
             parent_group_name=parent_group["name"],

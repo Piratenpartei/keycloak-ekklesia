@@ -10,6 +10,7 @@ def create_keycloak_admin_client() -> KeycloakAdmin:
         return KeycloakAdmin(
             server_url=settings.keycloak_url,
             realm_name=settings.realm,
+            user_realm_name="master",
             client_id=settings.client_id,
             client_secret_key=settings.client_secret,
             verify=True,
