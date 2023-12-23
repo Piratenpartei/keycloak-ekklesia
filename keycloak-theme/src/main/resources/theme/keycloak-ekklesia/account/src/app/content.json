@@ -9,6 +9,15 @@
     "componentName": "AccountPage"
   },
   {
+    "id": "ekklesia-sync-state",
+    "icon": "pf-icon-catalog",
+    "path": "ekklesia-sync-state",
+    "label": "ekklesia-sync-state",
+    "descriptionLabel": "ekklesia-sync-intro",
+    "modulePath": "/content/ekklesia-sync-page/EkklesiaSyncPage.js",
+    "componentName": "EkklesiaSyncPage"
+  },
+  {
     "id": "security",
     "icon": "pf-icon-security",
     "label": "accountSecurityTitle",
@@ -65,14 +74,5 @@
     "descriptionLabel": "ekklesia-beo-short",
     "modulePath": "/content/ekklesia-beo-settings/EkklesiaBeoSettings.js",
     "componentName": "EkklesiaBeoSettings"
-  },
-  {
-    "id": "ekklesia-sync-state",
-    "icon": "pf-icon-catalog",
-    "path": "ekklesia-sync-state",
-    "label": "ekklesia-sync-state",
-    "descriptionLabel": "ekklesia-sync-intro",
-    "modulePath": "/content/ekklesia-sync-page/EkklesiaSyncPage.js",
-    "componentName": "EkklesiaSyncPage"
   }
 ]

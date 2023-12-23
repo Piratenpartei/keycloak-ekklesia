@@ -12,6 +12,7 @@
     "strictNullChecks": true,
     "jsx": "react",
     "suppressImplicitAnyIndexErrors": true,
+    "ignoreDeprecations": "5.0",
     "skipLibCheck": true
   },
   "include": [

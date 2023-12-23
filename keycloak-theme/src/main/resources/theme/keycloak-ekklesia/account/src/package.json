@@ -3,36 +3,38 @@
   "version": "1.0.0",
   "description": "Ekklesia modifications for the account console",
   "scripts": {
-    "build": "snowpack --optimize && npm run check-types && npm run babel",
+    "build": "snowpack --optimize && pnpm run check-types && pnpm run babel && pnpm run move-web_modules",
     "babel": "babel --source-maps --extensions \".js,.ts,.tsx\" app/ --out-dir ../resources/ --copy-files",
-    "babel:watch": "npm run babel -- --watch",
+    "babel:watch": "pnpm run babel -- --watch",
     "check-types": "tsc --noImplicitAny --strictNullChecks --jsx react -p ./",
-    "check-types:watch": "npm run check-types -- -w"
+    "check-types:watch": "npm run check-types -- -w",
+    "move-web_modules": "shx mv web_modules ../resources"
   },
   "keywords": [],
   "author": "Piratenpartei Deutschland",
   "dependencies": {
-    "@patternfly/patternfly": "^4.125.3",
-    "@patternfly/react-core": "^4.147.0",
-    "@patternfly/react-icons": "^4.11.8",
-    "@patternfly/react-styles": "^4.11.8",
+    "@patternfly/patternfly": "^4.224.5",
+    "@patternfly/react-core": "^4.278.0",
+    "@patternfly/react-icons": "^4.93.7",
+    "@patternfly/react-styles": "^4.92.8",
     "react": "npm:@pika/react@^16.13.1",
     "react-dom": "npm:@pika/react-dom@^16.13.1"
   },
   "devDependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.8.7",
-    "@babel/plugin-proposal-class-properties": "^7.8.3",
-    "@babel/preset-env": "^7.13.15",
-    "@babel/preset-react": "^7.8.3",
-    "@babel/preset-typescript": "^7.8.3",
-    "@types/node": "^13.9.8",
+    "@babel/cli": "^7.18.9",
+    "@babel/core": "^7.18.8",
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/preset-env": "^7.18.9",
+    "@babel/preset-react": "^7.18.6",
+    "@babel/preset-typescript": "^7.18.6",
+    "@types/node": "^18.0.6",
     "@types/react": "^16.9.23",
     "@types/react-dom": "^16.9.5",
     "@types/react-router-dom": "^4.3.1",
     "rollup-plugin-postcss": "^2.5.0",
+    "shx": "^0.3.4",
     "snowpack": "^1.7.1",
-    "typescript": "^3.8.3"
+    "typescript": "^5.2.2"
   },
-  "repository": {}
+  "packageManager": "pnpm@8.1.0"
 }

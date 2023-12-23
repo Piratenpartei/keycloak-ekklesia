@@ -7,6 +7,7 @@ import { ContentPage } from "../ContentPage";
 import { Msg } from "../../widgets/Msg";
 import { ContentAlert } from "../ContentAlert";
 import { AccountServiceContext } from '../../account-service/AccountServiceContext';
+import { HttpResponse } from '../../account-service/account.service';
 
 interface SyncPageProps {}
 
@@ -58,11 +59,12 @@ export class EkklesiaSyncPage extends React.Component {
     }
 
     private fetchPersonalInfo(): void {
-        this.context!.doGet("/").then((response: any) => {
+        this.context!.doGet<FormFields>("/")
+          .then((response: HttpResponse<FormFields>) => {
             this.setState(this.DEFAULT_STATE);
-            let formData = response.data as FormFields;
-            if (!formData.attributes) {
-                formData.attributes = this.DEFAULT_ATTRIBUTES;
+            let formData = response.data;
+            if (!formData!.attributes) {
+                formData!.attributes = this.DEFAULT_ATTRIBUTES;
             }
             this.setState({ ...{formFields: formData} });
         });
@@ -88,7 +90,7 @@ export class EkklesiaSyncPage extends React.Component {
         let vals = this.state.formFields.attributes!;
 
         let dateVal = Date.parse(vals.ekklesia_last_sync!);
-        let options = {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric'};
+        let options = {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric'} as const;
         let date = isNaN(dateVal) ? "-" : new Intl.DateTimeFormat("default", options).format(dateVal);
 
         let eligible = vals.ekklesia_eligible == "true" ? Msg.localize("ekklesia-yes") : Msg.localize("ekklesia-no");

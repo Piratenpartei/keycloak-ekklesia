@@ -37,24 +37,24 @@ export class EkklesiaBeoSettings extends React.Component {
 
     fetchPersonalInfo() {
       this.context!.doGet<FormFields>("/")
-      .then((response: HttpResponse<FormFields>) => {
-        this.setState(this.DEFAULT_STATE);
-        const formFields = response.data;
-        if (!formFields!.attributes) {
-            formFields!.attributes = { notify_matrix_ids: [] };
-        }
-        if (!formFields!.attributes.notify_matrix_ids) {
-            formFields!.attributes.notify_matrix_ids = [];
-        }
-        let enable_email = formFields!.attributes.notify_enable_email;
-        if (typeof enable_email !== "object" || enable_email.length != 1) {
-          formFields!.attributes.notify_enable_email = true;
-        } else {
-          formFields!.attributes.notify_enable_email = enable_email[0] === "true";
-        }
+        .then((response: HttpResponse<FormFields>) => {
+          this.setState(this.DEFAULT_STATE);
+          const formFields = response.data;
+          if (!formFields!.attributes) {
+              formFields!.attributes = { notify_matrix_ids: [] };
+          }
+          if (!formFields!.attributes.notify_matrix_ids) {
+              formFields!.attributes.notify_matrix_ids = [];
+          }
+          let enable_email = formFields!.attributes.notify_enable_email;
+          if (typeof enable_email !== "object" || enable_email.length != 1) {
+            formFields!.attributes.notify_enable_email = true;
+          } else {
+            formFields!.attributes.notify_enable_email = enable_email[0] === "true";
+          }
 
-        this.setState({...{ formFields: formFields }});
-      });
+          this.setState({...{ formFields: formFields }});
+        });
     }
 
     private handleChange = (value: string, event: React.FormEvent<HTMLInputElement>) => {
