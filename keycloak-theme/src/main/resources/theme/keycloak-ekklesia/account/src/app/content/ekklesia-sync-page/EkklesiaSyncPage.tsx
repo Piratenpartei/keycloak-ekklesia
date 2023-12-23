@@ -7,6 +7,7 @@ import { ContentPage } from "../ContentPage";
 import { Msg } from "../../widgets/Msg";
 import { ContentAlert } from "../ContentAlert";
 import { AccountServiceContext } from '../../account-service/AccountServiceContext';
+import { HttpResponse } from '../../account-service/account.service';
 
 interface SyncPageProps {}
 
@@ -32,7 +33,7 @@ interface SyncInformation {
 
 export class EkklesiaSyncPage extends React.Component {
     static contextType = AccountServiceContext;
-    //context: React.ContextType<typeof AccountServiceContext>;
+    context: React.ContextType<typeof AccountServiceContext>;
     private readonly DEFAULT_ATTRIBUTES: SyncInformation = {
         ekklesia_first_sync: null,
         ekklesia_last_sync: null,
@@ -58,14 +59,15 @@ export class EkklesiaSyncPage extends React.Component {
     }
 
     private fetchPersonalInfo(): void {
-        /*this.context!.doGet("/").then((response: any) => {
+        this.context!.doGet<FormFields>("/")
+          .then((response: HttpResponse<FormFields>) => {
             this.setState(this.DEFAULT_STATE);
-            let formData = response.data as FormFields;
-            if (!formData.attributes) {
-                formData.attributes = this.DEFAULT_ATTRIBUTES;
+            let formData = response.data;
+            if (!formData!.attributes) {
+                formData!.attributes = this.DEFAULT_ATTRIBUTES;
             }
             this.setState({ ...{formFields: formData} });
-        });*/
+        });
     }
 
     private handleChange = (value: string, event: React.FormEvent<HTMLInputElement>) => {
@@ -78,10 +80,10 @@ export class EkklesiaSyncPage extends React.Component {
         event.preventDefault();
   
         const reqData = { ...this.state.formFields };
-        /*this.context!.doPost<void>("/", reqData)
+        this.context!.doPost<void>("/", reqData)
             .then(() => {
                 ContentAlert.success('accountUpdatedMessage');
-            });*/
+            });
       }
 
     public render(): React.ReactNode {
