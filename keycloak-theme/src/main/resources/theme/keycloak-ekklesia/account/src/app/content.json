@@ -56,5 +56,14 @@
     "modulePath": "/content/my-resources-page/MyResourcesPage.js",
     "componentName": "MyResourcesPage",
     "hidden": "!features.isMyResourcesEnabled"
+  },
+  {
+    "id": "ekklesia-beo-settings",
+    "icon": "pf-icon-catalog",
+    "path": "ekklesia-beo-settings",
+    "label": "ekklesia-beo-settings",
+    "descriptionLabel": "ekklesia-beo-short",
+    "modulePath": "/content/ekklesia-beo-settings/EkklesiaBeoSettings.js",
+    "componentName": "EkklesiaBeoSettings"
   }
 ]
