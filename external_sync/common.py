@@ -14,5 +14,5 @@ def create_keycloak_admin_client() -> KeycloakAdmin:
             client_id=settings.client_id,
             client_secret_key=settings.client_secret,
             verify=True,
-            auto_refresh_token=['get', 'post', 'put', 'delete']
+#            auto_refresh_token=['get', 'post', 'put', 'delete']
         )
