@@ -1,11 +1,13 @@
 import typer
-from eliot import start_action, start_task, log_message
+from eliot import start_action, start_task, log_message, to_file
 
 import urllib.request
 import json
 
 import matrix_settings
 from common import create_keycloak_admin_client
+
+to_file(open("log.json", "w"))
 
 allowed_roles = ["Mitarbeiter", "Piratenpartei Deutschland"]
 
